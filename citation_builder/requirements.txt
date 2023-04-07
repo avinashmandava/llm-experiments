@@ -6,3 +6,4 @@ rich==13.0.1
 validators==0.20.0
 lxml==4.9.2
 python-docx==0.8.11
+bibtexparser==1.4.0

@@ -13,9 +13,12 @@ from typing import List
 from dotenv import load_dotenv
 import json
 import os
+import re
 import validators
 import docx
 from lxml import etree
+import bibtexparser
+import ast
 
 # CONFIG
 load_dotenv()
@@ -54,7 +57,7 @@ def get_citations(footnotes: List):
   parser = PydanticOutputParser(pydantic_object=Citations)
 
   prompt = PromptTemplate(
-    template = "Take the folllowing list of footnotes, extract all the source info, and construct a list of bibliographic citations. Do it the same way bibtex would do it. And present the citations to me in a python list:\n{footnotes}\n{format_instructions}",
+    template = "Take the folllowing list of footnotes, extract all the source info, and construct a list of bibliographic citations. Do it the same way bibtex would do it. And present the citations to me in a python list:\n{footnotes}\n{format_instructions}.\nThere should be nothing other than the raw JSON object returned in your response. Do not add any markdown formatting or other text to your response. Do not preface the raw JSON response with any text.",
     input_variables = ["footnotes"],
     partial_variables = {"format_instructions": parser.get_format_instructions()}
   )
@@ -63,22 +66,27 @@ def get_citations(footnotes: List):
     SystemMessage(content=system_message),
     HumanMessage(content=input.to_string())
   ]
-  output = chat(messages).content
-  print(output)
-  try:
-    parser.parse(output)
-    output = json.loads(output)
-  except:
-    new_parser = OutputFixingParser.from_llm(parser=parser, llm=chat)
-    new_parser.parse(output)
-    output = json.loads(output)
-  return output
+
+  # Sometimes the response comes back with markdown formatting or is prefaced with "json", so we strip it out
+  output = chat(messages).content.strip("```").strip("json").strip().strip("```").strip()
+  # We deal with escape characters with a litreal eval that converts the string to a python dict object
+  output = ast.literal_eval(output)
+  # We load the raw citation strings in the dict object into a list of bibtexparser objects
+  citations = [bibtexparser.loads(citation) for citation in output["citations"]]
+  return citations
 
 def main():
+
   file_path = f"{DATA_DIR}/Conclusion2.0.docx"
+  # Get the footnotes
   footnotes = extract_footnotes(file_path)
+  # Limit to 5 for testing
   footnotes = footnotes[:5]
+  # Get the citations as bibtext objects in a list
   citations = get_citations(footnotes)
+  # Loop through and print the entries
+  for citation in citations:
+    print(citation.entries)
 
 if __name__ == "__main__":
     main()
