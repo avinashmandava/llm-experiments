@@ -78,20 +78,27 @@ def get_citations(footnotes: List):
   return output["citations"]
 
 def main():
-
-  file_path = f"{DATA_DIR}/Conclusion2.0.docx"
+  file_name="Introduction3.0.docx"
+  file_path = f"{DATA_DIR}/{file_name}"
   # Get the footnotes
   footnotes = extract_footnotes(file_path)
+  print(f"Found {len(footnotes)} footnotes in {file_name}")
   # One batch at a time
-  output_filename = f"{DATA_DIR}/citations.txt"
+  output_filename = f"{DATA_DIR}/{file_name}_citations.txt"
+  with open(output_filename, 'w+') as f:
+    f.write('')
   citations = []
   start = 0
   end = start + batch_size
   with open(output_filename, "a") as f:
-    for i in range(57, len(footnotes), batch_size):
+    for i in range(10, len(footnotes), batch_size):
       print(f"Processing from {i} to {i+batch_size} of {len(footnotes)} footnotes")
       # Process the next batch of 5 data points, or any remaining points if there are fewer than 5
-      results = get_citations(footnotes[i:i+batch_size])
+      try:
+        results = get_citations(footnotes[i:i+batch_size])
+      except:
+        print(f"Error processing batch starting at {i} of {len(footnotes)} footnotes. Trying again...")
+        results = get_citations(footnotes[i:i+batch_size])
 
       # Write the results for the current batch to the output file
       for result in results:
