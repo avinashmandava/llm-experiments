@@ -1,6 +1,6 @@
 # Citation Builder
 
-Simple script that takes a word document, extracts all the footnotes, and generates bibliographic citations.
+Simple script that takes a word document, extracts all the footnotes, and generates bibliographic citations following Chicago Manual of Style format.
 
 # Instructions
 
@@ -19,5 +19,5 @@ Simple script that takes a word document, extracts all the footnotes, and genera
 Run the file, replacing `word_filename` with the name of the file you want to extract footnotes and create a bibliography for.
 `python main.py word_filename`
 
-Your list of citations will print to the terminal output.
+Your list of citations will be saved in a file called `data/citations.txt`
 
