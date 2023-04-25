@@ -33,6 +33,15 @@ class Citations(BaseModel):
     #citations: List[str] = Field(description="Python list of all bibtex-formatted citations extracted from the supplied list of footnotes")
     citations: List[str] = Field(description="Python list where each element of the list is one Chicago Manual of Style-formatted citation extracted from the supplied list of footnotes.")
 
+def load_footnotes_from_file(file_path: str) -> List:
+    doc = docx.Document(file_path)
+    lines = []
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        if text:
+            lines.append(text)
+    return lines
+
 def extract_footnotes(doc_path):
     footnotes = []
     doc = docx.Document(doc_path)
@@ -78,10 +87,12 @@ def get_citations(footnotes: List):
   return output["citations"]
 
 def main():
-  file_name="Introduction3.0.docx"
+  file_name="Footnotes.docx"
   file_path = f"{DATA_DIR}/{file_name}"
   # Get the footnotes
-  footnotes = extract_footnotes(file_path)
+  #footnotes = extract_footnotes(file_path)
+  footnotes = load_footnotes_from_file(file_path)
+
   print(f"Found {len(footnotes)} footnotes in {file_name}")
   # One batch at a time
   output_filename = f"{DATA_DIR}/{file_name}_citations.txt"
@@ -91,7 +102,7 @@ def main():
   start = 0
   end = start + batch_size
   with open(output_filename, "a") as f:
-    for i in range(10, len(footnotes), batch_size):
+    for i in range(1040, len(footnotes), batch_size):
       print(f"Processing from {i} to {i+batch_size} of {len(footnotes)} footnotes")
       # Process the next batch of 5 data points, or any remaining points if there are fewer than 5
       try:
