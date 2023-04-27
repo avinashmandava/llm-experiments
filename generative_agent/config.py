@@ -8,15 +8,15 @@ DEV_MODE=False
 
 # OPENAI CONFIG
 OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
-OPENAI_MODEL="gpt-3.5-turbo"
+OPENAI_MODEL="gpt-3.5-turbo-0301"
 MAX_TOKENS=300
 
 # MEMORY CONFIG
 
 RETRIEVAL_WEIGHTS = {
-  'importance': 0.0,
-  'relevance': 1.0,
-  'recency': 0.0,
+  'importance': 1.0,
+  'relevance': 0.5,
+  'recency': 0.5,
 }
 
 # SIMULATION CONFIG
@@ -132,11 +132,14 @@ Detail {agent_name}'s plan for the whole hour, in exactly 6 tasks, each with a d
 PLAN_REACTION_PROMPT = '''
 {agent_summary_description}
 It is {datetime}.
-{agent_name}'s status: {agent_name} is currently {current_action}.
+{agent_name}'s current activity: {current_activity}.
 Observation: {observation}
 Summary of relevant context from {agent_name}'s memory:
 {relevant_context}
-Should {agent_name} react to the observation, and if so, what would be an appropriate reaction?
+Should {agent_name} react to the observation? If No, just respond "No" with no other words. If Yes, describe what the appropriate reaction would be very briefly. Example responses if Yes include:
+"Start a conversation with <person>"
+"Take a shower"
+"Sit down at the table"
 '''
 
 DIALOGUE_INITIAL_PROMPT = '''
@@ -165,13 +168,41 @@ What should {agent_name}'s response be?
 ACTION_LOCATION_PROMPT = '''
 {agent_summary_description}
 {agent_name} is currently in {current_location} that has {current_location_description}.
-{agent_name} knows about the following locations: {known_locations}
-Prefer to stay in the current area if the activity can be done there.
+{agent_name} knows about the following Known Locations: {known_locations}
 {agent_name} is planning to {next_action}.
-Which area should {agent_name} go to?
+From the list of Known Locations provided, choose the location that makes the most sense for {agent_name}'s next activity. Prefer to stay in the current area if the activity can be done there.
+Do not include any information other than the selected location from the list in your response. Only include the JSON, do not include any other text or formatting other than the JSON before or after the JSON. Here is the JSON template you should follow when providing your response
+{{
+  "location": "Bathroom in Truman's House"
+}}
 '''
 
 STATE_CHANGE_PROMPT = '''
 {agent_name} is currently performing the following action: {current_action} on the following object: {current_object}.
 What should we update the state of the object to? (e.g., if the object is a door, the state could be open or closed. If the object is a stove and the action is cooking, the state could be on or off.)
+'''
+
+REFLECTION_QUESTIONS_PROMPT = '''
+{recent_memories}
+Given only the information above, what are 3 most salient high-level questions we can answer about the subjects in the statements? Structure your reponse according to the JSON below. Do not include any information other than the 3 questions in your response. Only include the JSON, do not include any other text or formatting other than the JSON before or after the JSON. Here is the JSON template you should follow when providing your response:
+{{
+  "questions": [
+    "What is the name of the person who is the subject of the statement?",
+    "What is the name of the person who is the object of the statement?",
+    "What is the name of the person who is the indirect object of the statement?"
+}}
+'''
+
+REFLECTION_PROMPT = '''
+Statements about {agent_name}:
+{statements}
+What 5 high-level insights can you infer from the above statements? Structure your reponse according to the JSON below. Do not include any information other than the 3 questions in your response. Only include the JSON, do not include any other text or formatting other than the JSON before or after the JSON. Here is the JSON template you should follow when providing your response:
+{{
+  "insights": [
+    {{
+      "insight": "The insight you inferred",
+      "evidence": ["Statement 1", "Statement 2", "Statement 3"]
+    }}
+  ]
+}}
 '''
