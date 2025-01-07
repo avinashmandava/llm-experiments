@@ -1,3 +1,5 @@
+This is totally abandoned, made it public to share little snippets with some people, ignore all of this it's trash.
+
 # llm-experiments
 
 Place to store learning projects as I play with langchain and other LLM tools.
